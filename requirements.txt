@@ -1,21 +1,28 @@
 # Python Self Learning Map 依赖清单
-# 按需安装：pip install -r requirements.txt
+# 安装：pip install -r requirements.txt
+# 推荐在 conda 虚拟环境中安装
+
+# --- 基础（始终需要） ---
+# requests
 
 # --- 数据分析 ---
 # numpy
 # pandas
 # matplotlib
+# jupyter
 
-# --- GIS ---
+# --- GIS 与城市规划 ---
 # geopandas
 # folium
+# shapely
 
-# --- AI ---
+# --- AI Agent ---
 # openai
 # langchain
+# langchain-community
 # chromadb
 
-# --- 网络 ---
-# requests
+# --- 网络爬虫 ---
 # beautifulsoup4
 # selenium
+# lxml
