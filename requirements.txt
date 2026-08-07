@@ -1,0 +1,21 @@
+# Python Self Learning Map 依赖清单
+# 按需安装：pip install -r requirements.txt
+
+# --- 数据分析 ---
+# numpy
+# pandas
+# matplotlib
+
+# --- GIS ---
+# geopandas
+# folium
+
+# --- AI ---
+# openai
+# langchain
+# chromadb
+
+# --- 网络 ---
+# requests
+# beautifulsoup4
+# selenium
