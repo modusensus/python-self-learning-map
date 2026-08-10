@@ -4,4 +4,4 @@
 
 | 日期 | 错误 | 原因 | 解决 |
 |------|------|------|------|
-| | | | |
+| 2026-08-11 | `NameError: name 'random' is not defined` | 用了 `random` 模块，但忘了 `import random` | 文件最上面加一行 `import random`；记不住就用口诀：**"用模块先 import"** |

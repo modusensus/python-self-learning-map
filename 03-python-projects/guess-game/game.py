@@ -1,4 +1,5 @@
 """用Python设计第一个游戏"""
+import random
 
 counts = 4
 answer = random.randint (1,10)
