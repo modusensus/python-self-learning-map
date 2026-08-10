@@ -1,4 +1,3 @@
-counts =4
-while counts > 0:
-    print("I love you!")
-    counts = counts - 1
+import random
+random.randint (10,1000)
+print (random.randint (10,1000))

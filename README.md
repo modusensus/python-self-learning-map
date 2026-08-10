@@ -12,7 +12,7 @@
 
 ## Progress
 
-[x] Python basics
+[-] Python basics
 
 [ ] Pandas
 
@@ -24,10 +24,10 @@
 
 ## Projects
 
-| Project | Description |
-|-|-|
-| Daily Report Agent | AI information workflow |
-| Paper Assistant | Academic research assistant |
+| Project            | Description                 |
+| ------------------ | --------------------------- |
+| Daily Report Agent | AI information workflow     |
+| Paper Assistant    | Academic research assistant |
 
 ## Structure
 
