@@ -1,23 +1,26 @@
-"""用Python设计第一个游戏"""
-import random
+"""用Python设计第一个游戏：猜数字"""
 
-counts = 4
-answer = random.randint (1,10)
+# ---- 第 1 部分：导入工具箱 + 准备游戏 ----
+import random  # 导入 random 模块，后面才能用随机数功能
 
-while counts > 0:
-    temp = input("不妨猜一桉桉现在心里想的是哪个数字：") 
-    guess = int(temp)
+counts = 4                       # 剩余猜测次数，一开始有 4 次机会
+answer = random.randint(1, 10)   # 随机生成一个 1~10 之间的整数，作为"心里想的答案"
 
-    if guess == answer:
-        print ("你是桉桉心里的蛔虫吗？！")
-        print ("哼，猜中了也没奖励！")
-        break
-    else:
-        if guess < answer:
-            print ("小啦，再猜猜看呢？╰(￣ω￣ｏ)")
-        else:
-            print ("大啦，再猜猜看呢？╭(￣▽￣)")
-        counts -= 1
+# ---- 第 2 部分：游戏主循环 ----
+while counts > 0:                # 只要还有剩余次数(counts 大于 0)，就一直玩下去
+    temp = input("不妨猜一桉桉现在心里想的是哪个数字：")  # 让玩家输入一个数字(得到的是字符串)
+    guess = int(temp)            # 把输入的文本转成整数，才能和 answer 比较
 
-print ("游戏结束，不玩啦o(*￣▽￣*)ブ")        
+    if guess == answer:          # 猜中了？
+        print("你是桉桉心里的蛔虫吗？！")   # 猜中提示
+        print("哼，猜中了也没奖励！")        # 调皮一下
+        break                    # 立刻结束整个循环，游戏结束
+    else:                        # 没猜中怎么办？
+        if guess < answer:       # 猜的数字比答案小
+            print("小啦，再猜猜看呢？╰(￣ω￣ｏ)")   # 提示"小了"
+        else:                    # 否则(就是猜大了)
+            print("大啦，再猜猜看呢？╭(￣▽￣)")     # 提示"大了"
+        counts -= 1              # 用完一次机会，剩余次数减 1
 
+# ---- 第 3 部分：游戏结束 ----
+print("游戏结束，不玩啦o(*￣▽￣*)ブ")  # while 循环退出后执行(不管猜中还是次数用完)
