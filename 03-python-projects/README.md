@@ -26,6 +26,11 @@
 |------|------|-------------|
 | `print-even-numbers.py` | 打印 1~10 的偶数 | `for` + `range(1,11)` + `%` + `and` + `!=` |
 | `skip-multiples-of-3.py` | 跳过 3 的倍数不打印 | `for` + `range` + `continue` + `%` |
+| `count-multiples-of-3.py` | 统计 1~50 中 3 的倍数个数 | `for` + `range` + `if` + `%` + 计数器 |
+| `jin-to-kg.py` | 斤转千克（函数） | `def` + 参数 + `return` |
+| `rectangle-area.py` | 矩形面积计算器（函数） | `def` + 多参数 + `return` |
+| `sum-1-to-100.py` | 1 加到 100 累加器 | `for` + 累加器 |
+| `check-odd-even.py` | 判断奇偶 | `def` + `if/else` + `%` + `return` |
 
 ## 命名规范
 
