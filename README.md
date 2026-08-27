@@ -53,9 +53,9 @@ HTML/CSS  <  Python  <  JavaScript  <  数据分析(NumPy/Pandas)  <  后端(Fas
 
 ## Progress
 
-[-] Python basics
+[x] Python basics（变量 / 字符串 / 条件 / 循环 / 函数 / 数字运算）
 
-[ ] 数据结构
+[-] 数据结构（列表 / 字典 / 元组 / 集合）
 
 [ ] 数据分析（NumPy / Pandas / Matplotlib）
 
