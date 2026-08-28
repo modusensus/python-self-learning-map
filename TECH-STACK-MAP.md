@@ -24,7 +24,7 @@ HTML/CSS < Python < JavaScript < 数据分析 < 后端
 
 ## 二、阶段一：Python + SQLite + 数据分析（当前）
 
-> 对应目录：`01-python-basics` `02-data-structures` `03-python-projects` `04-data-analysis` `05-api-and-automation`
+> 对应目录：`stage-01-python-data/`（basics / data-structures / projects / data-analysis / api-automation）
 
 ### 1. Python 基础语法 `[-]`
 
@@ -38,15 +38,15 @@ HTML/CSS < Python < JavaScript < 数据分析 < 后端
 - [ ] 文件读写 + CSV
 - [ ] 异常处理 try/except
 
-**笔记入口：** [python-notes.md](notes/python-notes.md) ｜ [errors.md](notes/errors.md) ｜ [built-in-functions.md](notes/built-in-functions.md)
+**笔记入口：** [python-notes.md](notes/python/python-notes.md) ｜ [errors.md](notes/errors.md) ｜ [built-in-functions.md](notes/python/built-in-functions.md)
 
 **实战项目：**
-- [x] 猜数字游戏（guess-game/game.py）
-- [x] 小练习集（paper-organizer/：偶数、倍数、斤转千克、闰年、秒转时分秒、温度转换等）
+- [x] 猜数字游戏（projects/guess-game/game.py）
+- [x] 小练习集（projects/paper-organizer/：偶数、倍数、斤转千克、闰年、秒转时分秒、温度转换等）
 
 ### 2. SQLite（轻量数据库）`[ ]`
 
-> 对应目录：`05-api-and-automation`
+> 对应目录：`stage-01-python-data/api-automation/`
 
 - [ ] 建表 / 增删改查（INSERT / SELECT / UPDATE / DELETE）
 - [ ] Python 连接 SQLite（sqlite3 模块）
@@ -59,7 +59,7 @@ HTML/CSS < Python < JavaScript < 数据分析 < 后端
 
 ### 3. 数据分析三件套 `[ ]`
 
-> 对应目录：`04-data-analysis`
+> 对应目录：`stage-01-python-data/data-analysis/`
 
 #### NumPy（数值计算）
 - [ ] 数组 ndarray 创建与运算
@@ -84,7 +84,7 @@ HTML/CSS < Python < JavaScript < 数据分析 < 后端
 - [ ] conda 创建/切换环境（已有 `py-learn`）
 - [ ] 装包：`pip install pandas numpy matplotlib`
 
-**笔记入口：** [conda-notes.md](00-environment/conda-notes.md)
+**笔记入口：** [conda-notes.md](environment/conda-notes.md)
 
 ---
 
@@ -143,7 +143,7 @@ HTML/CSS < Python < JavaScript < 数据分析 < 后端
 
 ### QGIS + GeoPandas `[ ]`
 
-> 对应目录：`07-gis-and-planning`
+> 对应目录：`stage-04-gis/`（geopandas / spatial-analysis / urban-data）
 
 - [ ] QGIS 基本操作（加载图层、导出地图）
 - [ ] GeoPandas 处理地理数据
@@ -170,13 +170,13 @@ HTML/CSS < Python < JavaScript < 数据分析 < 后端
 
 ### 3. AI Agent 开发 `[-]`
 
-> 对应目录：`06-ai-agent`。已有一个实战项目，后续深入。
+> 对应目录：`stage-05-ai-tools/`。已有一个实战项目，后续深入。
 
 - [x] 多模型编排器（model-orchestrator：DeepSeek 老板 + 多家模型工人）
 - [ ] OpenAI 兼容 API 深入
 - [ ] LangChain / RAG
 
-**笔记入口：** `06-ai-agent/model-orchestrator/README.md`
+**笔记入口：** `stage-05-ai-tools/model-orchestrator/README.md`
 
 ---
 
