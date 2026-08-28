@@ -181,3 +181,30 @@ zz
 #### 学习心得
 
 今天主动在终端里做实验（试 `complex(4, 3+4j)`、`pow(2,3,4)` 等"奇怪组合"），发现这是理解语言边界特别好的方式。而且把函数理解成"加工厂"后，之前零零散散的 `def/参数/return` 知识突然串成了一条线——**函数 = 输入 → 加工 → 输出**。
+
+### Docker 学习（并行进行，配合 Linux 云服务器实操）
+
+#### 概念理解
+
+- **Docker = 打包"程序 + 运行环境"**，让"在我电脑能跑"变成"在哪都能跑"
+- **镜像（image）= 环境某一瞬间的"快照"**（拍立得比喻：定格/可恢复/可复制）
+  - ⚠️ 纠正误区：一开始以为"镜像 = 网络镜像站"，其实是英文 image（图像）和 mirror（镜子/复制品）被中文翻译坑了
+- **容器（container）= 用镜像快照"洗"出来的活实例**
+- **仓库 / 卷 / 网络**：菜谱图书馆 / 外置硬盘 / 电话线
+- **Docker vs 虚拟机**：虚拟机给每个环境装完整系统（几 GB、分钟级），Docker 共享宿主系统只隔离应用（几十 MB、秒级）
+- **虚拟机 vs Docker vs AI 沙箱**（三隔离概念）：
+  - 虚拟机隔离"整套操作系统"（独立公寓）
+  - Docker 隔离"应用+依赖"（共享大楼的住户）
+  - AI 沙箱隔离"行为权限"（紧箍咒，越界要用户授权）——TraeCode 里的 trae-sandbox 就是这个
+
+#### 实操（Linux 云服务器）
+
+- **踩坑**：下载了 Docker Desktop（桌面版）装不上，报 `Unsupported file`——因为 Docker Desktop 是给 Windows/Mac 用的，Linux 服务器要用 **Docker Engine**
+- 用一键脚本装好了 Docker Engine：`curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh`
+- 学会了容器/镜像的完整增删查命令（pull/run/ps/stop/rm/rmi/prune）
+- 学会了 `docker logs -f`（看日志）、`docker exec -it bash`（进容器内部）
+- 学会了 run 高级参数：`-d`（后台）、`--name`（命名）、`-p`（端口映射）、`-v`（挂载目录，注意必须是 `宿主机路径:容器路径` 两边都要写）
+
+**笔记位置：** `00-environment/docker-notes.md`
+
+**下一步目标：** 在服务器上用 Docker 跑 Ollama，部署一个小模型（如 qwen2.5:0.5b）——作为阶段一的"通关项目"之一。
