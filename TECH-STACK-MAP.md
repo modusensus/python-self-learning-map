@@ -180,6 +180,21 @@ HTML/CSS < Python < JavaScript < 数据分析 < 后端
 
 ---
 
+## 🧰 通用工具箱（不分阶段）
+
+> 任何阶段都会用到的笔记，搬运自 Obsidian 知识库。
+
+| 笔记 | 内容 | 什么时候查 |
+|------|------|-----------|
+| [tech-terms-cheatsheet.md](notes/tech-terms-cheatsheet.md) | 技术术语人话解释 + 易混概念辨析 | 遇到不懂的名词时 |
+| [command-line-cheatsheet.md](notes/command-line-cheatsheet.md) | CMD / PowerShell / bash 命令对照速查 | 忘了命令怎么写时 |
+| [markdown-cheatsheet.md](notes/markdown-cheatsheet.md) | Markdown 语法速成 | 写笔记、写 README 时 |
+| [linux-notes.md](environment/linux-notes.md) | Linux 用户与 root 权限 | 操作云服务器时 |
+| [docker-notes.md](environment/docker-notes.md) | Docker 概念与常用命令 | 部署 Dify / 小模型时 |
+| [conda-notes.md](environment/conda-notes.md) | Conda 环境管理 | Python 环境出问题时 |
+
+---
+
 ## 七、使用说明
 
 1. **每学完一个知识点** → 更新对应 `[ ]` 为 `[x]`，并把新知识记进对应笔记
