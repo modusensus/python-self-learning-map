@@ -207,6 +207,7 @@ docker info | grep -A 5 "Registry Mirrors"
 
 1. **临时设置**：WSL 里 `export http_proxy=http://127.0.0.1:端口`（NAT 下可能要 Windows 局域网 IP）
 2. **镜像网络（推荐一劳永逸）**：Windows 11 22H2+，在 `C:\Users\<用户名>\.wslconfig` 写：
+
    ```ini
    [wsl2]
    networkingMode=mirrored
@@ -216,6 +217,63 @@ docker info | grep -A 5 "Registry Mirrors"
 3. **直接忽略**：不用外网时就无视这个提示
 
 **我的情况：** 只在 WSL 里用 Docker，不在 WSL 访问外网 → 这个提示可以暂时忽略 ✅
+
+### 实测：WSL 里的网络到底怎么走的？（2026-08-28）
+
+> 疑问：WSL 不是"用不上 Windows 的 localhost 代理"吗？为什么 WSL 里 pull 很快、Google 还能打开？
+> 猜测：① 开了 TUN 模式 ② Docker 镜像源生效——实测发现**两个都对，分工合作**。
+
+**三招验证法（以后排查网络照着跑）：**
+
+```bash
+# 1. 查 Docker 配了哪些镜像源（有输出 = 镜像源配置生效）
+docker info | grep -A 5 "Registry Mirrors"
+
+# 2. 查当前出口 IP 在哪（显示国内 = 流量没走 VPN 直连）
+curl cip.cc
+
+# 3. 测被墙网站通不通（5 秒内通了 = TUN 在底层接管流量）
+curl -I --max-time 5 https://www.google.com
+```
+
+**我的实测结果与判读：**
+
+| 检查项           | 结果                               | 结论                             |
+| ---------------- | ---------------------------------- | -------------------------------- |
+| Registry Mirrors | daocloud / 南大 / dockerproxy 三个 | ✅ 镜像源配置生效                |
+| cip.cc           | 湖南电信 106.16.x.x                | 国内流量直连（规则分流，非全局） |
+| Google           | 5 秒内 HTTP 200                    | ✅ TUN 确实在抓 WSL 流量         |
+
+**关键推理：** 湖南电信 IP 直连不可能打开 Google，但 WSL 里能打开 → WSL 流量 NAT 出去后被 Windows 的 TUN 虚拟网卡截走了。而 cip.cc 显示国内 IP → VPN 是**规则分流模式**（国内直连、国外走隧道），不是全局。
+
+**TUN 模式 vs 系统代理（为什么 TUN 能管到 WSL）：**
+
+|              | 系统代理（普通）                   | TUN 模式                                     |
+| ------------ | ---------------------------------- | -------------------------------------------- |
+| 工作层面     | 应用层：每个软件自己决定走不走代理 | 网络层：虚拟网卡在底层拦截**所有**流量 |
+| 类比         | 员工自己把文件交给前台转发         | 大楼总网线上装关卡，进出都过                 |
+| WSL 受影响吗 | ❌ WSL 不知道前台在哪              | ✅ WSL 流量 NAT 出去后也被截                 |
+
+**我的网络组合拳全景图：**
+
+```
+WSL 里的流量
+   │
+   ├─ docker pull（拉镜像）
+   │    └→ 优先问镜像源（daocloud/南大）→ 国内分仓直接拿货 ✅ 又快又稳
+   │       （三个镜像源都挂了才回源 docker.io → 那时才走下面的隧道）
+   │
+   └─ 其他流量（curl / pip / git clone…）
+        └→ NAT 出去 → Windows 的 TUN 虚拟网卡截住
+             ├─ 国内网站 → 直连（cip.cc 显示湖南电信的原因）
+             └─ 国外网站 → 代理隧道（Google 能通的原因）
+```
+
+**一句话总结：** 拉镜像快 = 镜像源的功劳；WSL 能翻出去 = TUN 的功劳。各管各的。
+
+**延伸实验：** 把 VPN 切到"全局模式"再跑 `curl cip.cc`，IP 会变成 VPN 节点地区的 IP——这是区分"规则模式 vs 全局模式"最直观的办法。
+
+**排查口诀：** 拉镜像慢先查镜像源（第 1 招），翻不出去先查 TUN/代理（第 2、3 招）。
 
 ---
 
@@ -233,6 +291,39 @@ docker images
 # 删除镜像（要先删掉使用它的容器）
 docker rmi <镜像ID>
 ```
+
+### 镜像的完整地址（pull 背后的"收货地址"）
+
+**你以为写的是简写：**
+
+```bash
+docker pull nginx
+```
+
+**Docker 偷偷补全成完整地址：**
+
+```bash
+docker pull docker.io/library/nginx:latest
+```
+
+**逐段拆解（寄快递类比）：**
+
+| 部分          | 名字                  | 意思                                               | 快递类比     |
+| ------------- | --------------------- | -------------------------------------------------- | ------------ |
+| `docker.io` | 仓库地址（Registry）  | 去**哪个**下载中心，官方是 Docker Hub        | 哪个快递网点 |
+| `library`   | 命名空间（namespace） | 官方镜像专属"书架"；个人镜像这里是**用户名** | 哪个小区     |
+| `nginx`     | 镜像名                | 光盘的名字                                         | 哪栋楼       |
+| `:latest`   | 标签（tag）           | 版本号，`latest` = 最新版                        | 几零几室     |
+
+**三处默认值（所以平时可以简写）：** 仓库默认 `docker.io`，官方镜像默认 `library` 书架，版本默认 `latest`。就像浏览器输 `baidu.com` 自动补全成 `https://www.baidu.com`。
+
+**⚠️ 三个经典 typo 及对应报错（实战会频繁遇到）：**
+
+| 写错                    | 正确        | 报错                                     | 规律                                     |
+| ----------------------- | ----------- | ---------------------------------------- | ---------------------------------------- |
+| `;ibrary`（标点错）   | `library` | `invalid reference format`（格式不对） | 地址格式错                               |
+| `ngnix`（名字拼错）   | `nginx`   | `pull access denied / not found`       | **镜像名错 → 整个仓库找不到**     |
+| `lastest`（版本拼错） | `latest`  | `manifest not found`                   | **tag 错 → 仓库在，但没这个版本** |
 
 ### 容器（container）相关
 
@@ -254,7 +345,48 @@ docker rm <容器ID>
 
 # 一键清理所有已退出/停止的容器
 docker container prune
+
+# 重启容器（正在跑的、已停的都能用；常用于改了配置后让容器重新加载）
+docker restart <容器名或ID>
 ```
+
+### 重启的两层含义（别搞混！）
+
+"重启 Docker"其实有两层，命令完全不同：
+
+| 层级 | 是什么 | 命令 | 什么时候用 |
+|------|--------|------|-----------|
+| **重启容器** | 重启某一台"虚拟电脑" | `docker restart <容器名>` | 改了配置、容器抽风，最常用 |
+| **重启 Docker 引擎** | 重启整个"发动机"（Engine） | 见下表 | 改了 daemon.json、引擎本身出问题 |
+
+**重启 Docker 引擎的命令（按系统分）：**
+
+```bash
+# Linux 云服务器（现代 systemd 方式，推荐）
+sudo systemctl restart docker
+
+# Linux 老方式（SysV，效果一样，老系统用）
+service docker restart
+
+# Windows Docker Desktop（没有命令行方式，两种做法）
+#   1. 托盘图标右键 → Restart
+#   2. WSL 里执行 wsl --shutdown（粗暴但有效，会关掉所有 WSL 实例）
+```
+
+> 我的现状：本地是 Docker Desktop（Windows），引擎重启走托盘 GUI；云服务器是 Docker Engine，用 `sudo systemctl restart docker`。
+> 注意：WSL 里能不能用 `systemctl` 取决于是否开启了 systemd（`/etc/wsl.conf` 里 `[boot] systemd=true`）。
+
+### 容器名 vs 镜像名（stop/rm 只认左边和右边）
+
+```bash
+# docker ps -a 表格的对应关系：
+# CONTAINER ID   IMAGE    ...   NAMES
+#    第一列      镜像名          最后一列（容器名）
+```
+
+- `docker stop` / `docker rm` / `docker restart` / `docker logs` 后面填的**都是容器名或容器 ID**（第一列 / 最后一列）
+- `docker rmi` / `docker run` 后面填的**才是镜像名**（IMAGE 列）
+- 没用 `--name` 起名时，容器名是随机生成的（如 `happy_yonath`）
 
 > 注意：容器 ID 不用输全，前几位就行（如 `docker stop 3a2f`）。
 
@@ -335,8 +467,9 @@ CMD ["python", "app.py"]
 
 ## 踩坑记录
 
-| 日期       | 错误 | 原因 | 解决 |
-| ---------- | ---- | ---- | ---- |
-| 2026-08-27 |      |      |      |
+| 日期       | 错误                                                         | 原因                                                         | 解决                                                         |
+| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 2026-08-29 | `docker stop nginx` → `No such container: nginx`              | 把**镜像名**当成了**容器名**。stop/rm 后面要填容器名（NAMES 列），不是镜像名（IMAGE 列）。两个 nginx 容器是随机名：`happy_yonath`、`dazzling_carson` | 用容器名操作：`docker rm happy_yonath dazzling_carson`；以后 `docker run --name xxx` 自己起名 |
+| 2026-08-29 | `Exited (0)` 的容器却去 `docker stop`                         | 没看 STATUS 列：`Exited (0)` = 已经自己退出了（0 = 正常），根本不用停 | 已退出的容器用 `docker rm` 删除；`stop` 只对 `Up`（运行中）的有意义 |
 
-> 待补充：今天踩了什么坑，记在这里（同时可以同步到 `notes/errors.md`）。
+> 待补充：以后踩了坑，记在这里（同时可以同步到 `notes/errors.md`）。
