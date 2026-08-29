@@ -1,22 +1,28 @@
 # Docker 学习笔记
 
 > 记录 Docker 学习过程中的关键知识和踩坑经验。
-> 开始学习：2026-08-27
+> 开始学习：2026-08-27 ｜ 网课结课：2026-08-29
+> 结构：概念 → 环境 → 镜像 → 容器 → 卷 → 网络 → Compose → 实战 → 踩坑
+> 🔲 标记 = 网课已学、待回忆填充的内容
 
 ## 目录
 
-- [Docker 是什么](#docker-是什么)
-- [核心概念](#核心概念)
-- [Docker vs 虚拟机](#docker-vs-虚拟机)
-- [在 Windows 上装 Docker 的三种方案](#在-windows-上装-docker-的三种方案)
-- [常用命令](#常用命令)
-- [Dockerfile](#dockerfile)
-- [实战项目](#实战项目)
-- [踩坑记录](#踩坑记录)
+- [第 1 章 认识 Docker](#第-1-章-认识-docker)
+- [第 2 章 安装与环境（Windows）](#第-2-章-安装与环境windows)
+- [第 3 章 镜像操作](#第-3-章-镜像操作)
+- [第 4 章 容器操作](#第-4-章-容器操作)
+- [第 5 章 数据卷（挂载）](#第-5-章-数据卷挂载)
+- [第 6 章 容器网络](#第-6-章-容器网络)
+- [第 7 章 Docker Compose（舰队模式）](#第-7-章-docker-compose舰队模式)
+- [第 8 章 实战项目](#第-8-章-实战项目)
+- [第 9 章 踩坑记录](#第-9-章-踩坑记录)
+- [第 10 章 待办与待补充](#第-10-章-待办与待补充)
 
 ---
 
-## Docker 是什么
+## 第 1 章 认识 Docker
+
+### 1.1 Docker 是什么
 
 **Docker 是一个"打包程序 + 运行环境"的工具。** 把程序连同它需要的运行环境（系统组件、依赖、配置）一起打包成一个"标准套餐"（镜像），在任何机器上都能一键跑起来。
 
@@ -24,9 +30,7 @@
 
 > 核心价值：**"在我电脑上能跑"→ "在哪都能跑"**（解决环境不一致问题）。
 
----
-
-## 核心概念
+### 1.2 核心概念
 
 | 概念            | 通俗解释                                          | 类比                     |
 | --------------- | ------------------------------------------------- | ------------------------ |
@@ -69,9 +73,7 @@ Dockerfile（菜谱：一步步说明怎么搭环境）
 
 **一句话：** 镜像 = 环境在某个瞬间的"定格快照"；容器 = 用这个快照洗出来的"活实例"。
 
----
-
-## Docker vs 虚拟机
+### 1.3 Docker vs 虚拟机
 
 **核心区别：虚拟机给每个环境装"完整操作系统"，Docker 共享宿主系统，只隔离程序。**
 
@@ -85,9 +87,7 @@ Dockerfile（菜谱：一步步说明怎么搭环境）
 
 **虚拟机比喻：** 在一台电脑里用软件"假装"出另一台完整电脑——每间假房间有独立地板、墙、水电表（= 完整操作系统），互不干扰。
 
----
-
-## 虚拟机 vs Docker vs AI 沙箱（三者的隔离区别）
+### 1.4 虚拟机 vs Docker vs AI 沙箱（三者的隔离区别）
 
 三者都带"隔离"意思，但**隔离的东西完全不同**：
 
@@ -120,7 +120,9 @@ Dockerfile（菜谱：一步步说明怎么搭环境）
 
 ---
 
-## 在 Windows 上装 Docker 的三种方案
+## 第 2 章 安装与环境（Windows）
+
+### 2.1 三种安装方案
 
 > 结论：**Windows 不需要自己装 Linux 系统也能用 Docker。**
 
@@ -134,7 +136,7 @@ Dockerfile（菜谱：一步步说明怎么搭环境）
 
 > 关键认知：**Docker Desktop 底层就是靠 WSL2 这个"水电工"来模拟 Linux 环境的**，用户不需要自己折腾 Linux。
 
-### Docker Engine vs Docker Desktop vs 镜像源（分清概念）
+### 2.2 Docker Engine vs Docker Desktop vs 镜像源（分清概念）
 
 |            | Docker Engine                                 | Docker Desktop                        | 镜像源                                 |
 | ---------- | --------------------------------------------- | ------------------------------------- | -------------------------------------- |
@@ -147,7 +149,32 @@ Dockerfile（菜谱：一步步说明怎么搭环境）
 
 **我的现状：** 云服务器装了 Docker Engine ✅，本地 Windows 是 Docker Desktop
 
-### 配置国内镜像源（加速拉镜像）
+### 2.3 ⚠️ 误区：在 PowerShell 里敲 docker ≠ Docker 跑在 Windows 里
+
+**docker 命令只是"遥控器"，干活的是"机器人本体"：**
+
+| 角色                     | 是什么                                         | 装在哪                                  |
+| ------------------------ | ---------------------------------------------- | --------------------------------------- |
+| **docker CLI**（命令行） | 遥控器：只把命令**发送**出去                   | PowerShell / WSL 终端（哪都能装）       |
+| **Docker Engine**        | 机器人本体：真正拉镜像、跑容器的后台守护进程   | **必须跑在 Linux**（WSL2/Hyper-V 虚拟机） |
+
+```
+PowerShell 敲 docker compose up（部署 Dify 时）
+      ↓ 遥控器发指令
+Windows 里的 Linux 虚拟机（WSL2 或 Hyper-V 后端）
+      ↓ 机器人本体干活
+拉镜像 / 起容器 / 存数据 → 全存在虚拟机的虚拟磁盘里
+```
+
+**推论：**
+
+- 卸载 Docker Desktop = 遥控器 + 藏着数据的虚拟机**一起删** → Dify 数据没了的真正原因
+- 在哪个终端敲命令无关紧要，Engine 在哪跑才决定数据存哪
+- 旧版（Hyper-V 后端）vs 新版（WSL2 后端）= 机器人换了房间，架构没变
+- 验证后端：PowerShell 跑 `wsl -l -v`，有 `docker-desktop` 发行版 = WSL2 后端
+- 延伸：设 `DOCKER_HOST` 环境变量，Windows 的遥控器可以隔空指挥**云服务器**上的 Engine
+
+### 2.4 配置国内镜像源（加速拉镜像）
 
 **Linux 服务器**（改文件）：
 
@@ -185,7 +212,7 @@ docker info | grep -A 5 "Registry Mirrors"
 - `https://dockerproxy.com`
 - `https://hub-mirror.c.163.com`（网易）
 
-### WSL 的网络模式（遇到的提示）
+### 2.5 WSL 的网络模式（遇到的提示）
 
 **提示：** `wsl: 检测到 localhost 代理配置，但未镜像到 WSL。NAT 模式下的 WSL 不支持 localhost 代理。`
 
@@ -218,7 +245,27 @@ docker info | grep -A 5 "Registry Mirrors"
 
 **我的情况：** 只在 WSL 里用 Docker，不在 WSL 访问外网 → 这个提示可以暂时忽略 ✅
 
-### 实测：WSL 里的网络到底怎么走的？（2026-08-28）
+### 2.6 WSL2 内存上限（.wslconfig 第二个用途：管住"吞内存怪兽"）
+
+**背景：** 任务管理器里的 `vmmem` 进程 = WSL2 虚拟机本体，Docker 容器全跑在它肚子里。默认最多吃主机一半内存且不好好吐。`.wslconfig` 给它戴紧箍咒。
+
+**我的配置**（`C:\Users\石晴\.wslconfig`）：
+
+```ini
+[wsl2]
+memory=4GB                 # WSL2 最多吃 4GB（Docker 在里面）
+swap=2GB                   # 内存不够时借硬盘当临时内存
+
+[experimental]
+autoMemoryReclaim=gradual  # 空闲内存逐步还给 Windows
+```
+
+- 4GB 是**天花板不是实耗**——平时跑一两个 nginx 只用几百 MB，别慌
+- 主机 16GB → 4GB 合适；8GB → 可降到 3GB；**别低于 2GB**（Docker Desktop 自己要吃约 1GB）
+- **生效方式**：改完必须 `wsl --shutdown` + 重启 Docker Desktop（配置只在虚拟机开机时读一次）
+- **不用 Docker 时彻底释放内存**：托盘退出 Docker Desktop → PowerShell 跑 `wsl --shutdown` → vmmem 消失
+
+### 2.7 实测：WSL 里的网络到底怎么走的？（2026-08-28）
 
 > 疑问：WSL 不是"用不上 Windows 的 localhost 代理"吗？为什么 WSL 里 pull 很快、Google 还能打开？
 > 猜测：① 开了 TUN 模式 ② Docker 镜像源生效——实测发现**两个都对，分工合作**。
@@ -277,9 +324,9 @@ WSL 里的流量
 
 ---
 
-## 常用命令
+## 第 3 章 镜像操作
 
-### 镜像（image）相关
+### 3.1 镜像三连：pull / images / rmi
 
 ```bash
 # 拉取镜像（从仓库下载）
@@ -292,7 +339,7 @@ docker images
 docker rmi <镜像ID>
 ```
 
-### 镜像的完整地址（pull 背后的"收货地址"）
+### 3.2 镜像的完整地址（pull 背后的"收货地址"）
 
 **你以为写的是简写：**
 
@@ -325,10 +372,90 @@ docker pull docker.io/library/nginx:latest
 | `ngnix`（名字拼错）   | `nginx`   | `pull access denied / not found`       | **镜像名错 → 整个仓库找不到**     |
 | `lastest`（版本拼错） | `latest`  | `manifest not found`                   | **tag 错 → 仓库在，但没这个版本** |
 
-### 容器（container）相关
+### 3.3 构建镜像：Dockerfile
+
+Dockerfile 是"做镜像的菜谱"——用指令描述怎么一步步把镜像构建出来。
+
+```dockerfile
+# 基础镜像（用现成的 Python 3.10 环境）
+FROM python:3.10
+
+# 工作目录（容器里的默认路径）
+WORKDIR /app
+
+# 复制依赖文件到容器
+COPY requirements.txt .
+
+# 安装依赖
+RUN pip install -r requirements.txt
+
+# 复制代码到容器
+COPY . .
+
+# 启动命令（容器启动时执行）
+CMD ["python", "app.py"]
+```
+
+**指令速查表（构建时 vs 启动时是分水岭）：**
+
+| 指令          | 什么时候执行 | 作用                                                     |
+| ------------- | ------------ | -------------------------------------------------------- |
+| `FROM`      | 构建时       | 指定基础镜像（"地基"）                                   |
+| `WORKDIR`   | 构建时       | 设定容器里的默认工作目录                                 |
+| `COPY`      | 构建时       | 把宿主机文件复制进镜像                                   |
+| `ADD`       | 构建时       | COPY 超集：能自动解压 tar、能拉 URL（日常用 COPY 就够）  |
+| `RUN`       | 构建时       | 构建过程中执行命令（最常见：装依赖）                     |
+| `ENV`       | 构建 + 运行  | 设置**持久**环境变量（构建时能读，容器跑起来还在）       |
+| `ARG`       | 仅构建时     | 只在构建阶段有效的变量（`docker build --build-arg` 传入）|
+| `EXPOSE`    | 构建时       | **声明**容器监听的端口（纯文档性质，真正映射靠 `-p`）    |
+| `ENTRYPOINT`| **启动时**   | 容器的"主命令"，不容易被覆盖                             |
+| `CMD`       | **启动时**   | 默认命令，容易被 `docker run` 后面的参数**覆盖**         |
+
+**ENTRYPOINT vs CMD（易混点）：**
+
+- `CMD` = 默认参数：`docker run <镜像> 别的命令` 会**整体覆盖**它
+- `ENTRYPOINT` = 固定主程序：`docker run <镜像> 后面的东西` 变成传给它的**参数**而不是替换它
+- 常见搭配：`ENTRYPOINT` 定程序（如 nginx），`CMD` 定默认参数——两者会被拼在一起执行
+
+**.dockerignore（类比 .gitignore）：** 构建前排除不想 COPY 进镜像的文件——`node_modules/`、`.git/`、临时文件、密钥。既缩小镜像体积，也避免把敏感信息打进镜像。
+
+**分层缓存（为什么模板里"先 COPY requirements.txt 装依赖，再 COPY 代码"）：**
+
+```
+Docker 每条指令生成一层，缓存机制：改了第 N 层，第 N 层之后全部重建，之前的直接复用
+    ↓
+先 COPY requirements.txt + pip install   ← 依赖不变就永远走缓存（重建项目时秒过）
+再 COPY . .                              ← 代码天天改，只重建这一层（秒级）
+    ↓
+反例：开头就 COPY . . → 改一行代码 → 依赖重装一遍 → 构建几分钟起步
+```
+
+**构建 + 运行命令：**
 
 ```bash
-# 运行容器（本地没有镜像会自动 pull）
+docker build -t <镜像名>:<tag> .
+#    ↑ 起名（可带版本号，不写默认 latest） ↑ 结尾的 . 是"构建上下文"=当前目录，千万别漏
+docker run hello-docker          # 注意：run 只自动 pull，不自动 build
+```
+
+**推送镜像到 Docker Hub（让全世界都能 pull 你的镜像）：**
+
+```bash
+docker login                              # 先登录（会提示输用户名密码）
+docker build -t <用户名>/<镜像名>:<tag> . # 镜像名必须带上你的用户名，不然 push 不上去
+docker push <用户名>/<镜像名>:<tag>       # 推送
+```
+
+> ✅ 2026-08-29 网课看完，已整理填充。
+
+---
+
+## 第 4 章 容器操作
+
+### 4.1 生命周期命令
+
+```bash
+# 运行容器（本地没有镜像会自动 pull；run = pull + create + start 三合一）
 docker run <镜像名>
 
 # 查看正在运行的容器
@@ -343,6 +470,10 @@ docker stop <容器ID>
 # 删除容器（要先停止）
 docker rm <容器ID>
 
+# 只创建不启动（run = create + start，拆开来用就是这两条）
+docker create <镜像名>
+docker start <容器ID>
+
 # 一键清理所有已退出/停止的容器
 docker container prune
 
@@ -350,7 +481,65 @@ docker container prune
 docker restart <容器名或ID>
 ```
 
-### 重启的两层含义（别搞混！）
+### 4.2 容器名 vs 镜像名（stop/rm 只认左边和右边）
+
+```bash
+# docker ps -a 表格的对应关系：
+# CONTAINER ID   IMAGE    ...   NAMES
+#    第一列      镜像名          最后一列（容器名）
+```
+
+- `docker stop` / `docker rm` / `docker restart` / `docker logs` 后面填的**都是容器名或容器 ID**（第一列 / 最后一列）
+- `docker rmi` / `docker run` 后面填的**才是镜像名**（IMAGE 列）
+- 没用 `--name` 起名时，容器名是随机生成的（如 `happy_yonath`）
+- 注意：容器 ID 不用输全，前几位就行（如 `docker stop 3a2f`）
+
+### 4.3 docker run 参数全解
+
+```bash
+# 后台运行 + 命名 + 端口映射 + 挂载目录
+docker run -d --name <容器名> -p 宿主机端口:容器端口 -v 宿主机路径:容器路径 <镜像名>
+```
+
+| 参数       | 作用                                     | 例子                               |
+| ---------- | ---------------------------------------- | ---------------------------------- |
+| `-d`     | 后台运行（detach），不占用终端           |                                    |
+| `--name` | 给容器起名字                             | `--name myapp`                   |
+| `-p`     | **端口映射**：把容器端口暴露给外面 | `-p 8080:80`（外部8080→容器80） |
+| `-v`     | **挂载目录**：把本机文件夹塞进容器 | `-v /host/data:/container/data`  |
+
+> **⚠️ 挂载目录 -v 的正确写法**：必须是 `宿主机路径:容器路径` 两边都要写，中间用**冒号**分隔。
+> ❌ `-v /host/data`（只写一边，不对）
+> ✅ `-v /home/user/data:/app/data`（宿主机路径:容器路径）
+
+**网课回忆成果（2026-08-29）：**
+
+| 参数      | 作用                             | 说明 / 例子                                        |
+| --------- | -------------------------------- | -------------------------------------------------- |
+| `-e`      | 往容器里**传环境变量**           | `-e MONGO_INITDB_ROOT_USERNAME=admin`              |
+| `--name`  | 给容器起名                       | 容器名**不能重复**，撞名直接报错                   |
+| `-it`     | 交互模式：把控制台"伸进"容器里   | 和 `--rm` 连用是临时调试神器                       |
+| `--rm`    | 容器**一停止就自动删除**         | `docker run -it --rm <镜像>` 用完即走，不留垃圾    |
+| `--restart always` | 容器一停就自动拉起      | 内部崩溃、宿主机断电重启，全都给你拉起来           |
+| `--restart unless-stopped` | 同上，但手动 stop 的不拉起 | 我亲手停的就让它装死，其他情况照常复活      |
+
+**`--restart always` vs `unless-stopped` 一句话：** `always` 死都要活；`unless-stopped` 我亲手按停的它就乖乖装死。
+
+**`-e` 的环境变量名去哪查？** 去 **Docker Hub 的镜像页面**或 **GitHub 仓库 README**——比如 MongoDB 的账号密码就靠 `-e` 传进去，避免写死在配置文件里。
+
+### 4.4 docker run 的语法铁律：选项必须在镜像名**前面**
+
+```bash
+docker run [一堆选项] <镜像名> [传给容器内部的命令]
+#          ↑ 选项全在镜像名左边        ↑ 镜像名右边的东西不再被当选项
+```
+
+- 镜像名是"分水岭"：它**右边**的一切都会原样传给容器内部，Docker 不再解析为选项
+- ❌ `docker run nginx -d` → `-d` 被当成传给容器内 nginx 的参数（等于没写）
+- ✅ `docker run -d nginx`
+- `--name` 是**两个**横杠；只写 `name` 会被当成普通字符串
+
+### 4.5 重启的两层含义（别搞混！）
 
 "重启 Docker"其实有两层，命令完全不同：
 
@@ -376,100 +565,448 @@ service docker restart
 > 我的现状：本地是 Docker Desktop（Windows），引擎重启走托盘 GUI；云服务器是 Docker Engine，用 `sudo systemctl restart docker`。
 > 注意：WSL 里能不能用 `systemctl` 取决于是否开启了 systemd（`/etc/wsl.conf` 里 `[boot] systemd=true`）。
 
-### 容器名 vs 镜像名（stop/rm 只认左边和右边）
+### 4.6 日志与调试
 
 ```bash
-# docker ps -a 表格的对应关系：
-# CONTAINER ID   IMAGE    ...   NAMES
-#    第一列      镜像名          最后一列（容器名）
-```
-
-- `docker stop` / `docker rm` / `docker restart` / `docker logs` 后面填的**都是容器名或容器 ID**（第一列 / 最后一列）
-- `docker rmi` / `docker run` 后面填的**才是镜像名**（IMAGE 列）
-- 没用 `--name` 起名时，容器名是随机生成的（如 `happy_yonath`）
-
-> 注意：容器 ID 不用输全，前几位就行（如 `docker stop 3a2f`）。
-
-### 查看容器日志
-
-```bash
-# 查看容器日志（实时滚动显示）
+# 查看容器日志（-f = follow 实时滚动；不加只看已有日志）
 docker logs -f <容器ID>
+# 注意：logs -f 里按 Ctrl+C 只是退出"看日志"，容器不受影响
+#（前台模式里 Ctrl+C 则是停容器——同一个按键两种命运）
 
-# -f = follow，持续跟踪最新日志；不加 -f 只看已有日志
-```
+# 查看容器里正在跑的进程（ps -ef 是 Linux 命令，在容器里执行）
+docker exec <容器ID> ps -ef
 
-### 进入容器内部
-
-```bash
-# 进入容器内部，打开一个交互式 shell（bash）
+# 进入容器内部，打开一个交互式 shell
 docker exec -it <容器名或ID> bash
+# -i = interactive 交互式；-t = tty 分配终端；退出输入 exit
+# bash 打不开（极简镜像没装 bash）→ 换保底写法 /bin/sh
+# 容器是"极简系统"，很多工具没预装：apt update && apt install <软件> 现场装
 
-# -i = interactive 交互式；-t = tty 分配终端；bash = 进入后打开的 shell
-# 退出容器：输入 exit 回车
+# 体检报告：查容器/镜像的一切配置（挂载、端口、网络、环境变量……）
+docker inspect <容器名>
+# 查挂载看输出里的 "Mounts" 段：Source=宿主机路径，Destination=容器路径
+# 忘了容器当时用什么参数启动的？inspect 全记得——它就是容器的"档案袋"
 ```
 
-### 运行容器的高级参数（run 完整版）
+**读 `docker ps -a` 的 STATUS 列：**
+
+| 状态             | 含义                     | 下一步                    |
+| ---------------- | ------------------------ | ------------------------- |
+| `Up x minutes` | 正在运行                 | 直接用                    |
+| `Exited (0)`   | 正常退出（0 = 没报错）   | 不用 stop，直接 `rm`    |
+| `Exited (非0)` | 异常退出（有错误发生）   | `docker logs` 查死因    |
+| `Restarting`   | 反复崩溃重启中           | `docker logs` 查死因    |
+
+🔲 **回忆清单（网课的调试章节还讲了什么）：**
+
+- `docker top <容器>`（看容器里的进程？）
+- `docker stats`（实时资源占用？）
+- `docker diff`（容器文件系统改了什么？）
+
+---
+
+## 第 5 章 数据卷（挂载）
+
+### 5.1 三种挂载方式对照（绑定 / 命名 / 匿名）
+
+| 类型     | 写法                          | 左边是什么 | 数据存哪                                        |
+| -------- | ----------------------------- | ---------- | ----------------------------------------------- |
+| 绑定挂载 | `-v /宿主机路径:/容器路径`    | 真实路径   | 我指定的文件夹（自己管）                        |
+| 命名卷   | `-v 卷名:/容器路径`           | 一个名字   | Docker 统一保管（`/var/lib/docker/volumes/`）   |
+| 匿名卷   | `-v /容器路径`（只写右边）    | 没有左边   | Docker 随机起名保管（难管理，不推荐）           |
+
+> 术语备忘：命名卷 = 具名卷 = named volume，同一个东西（翻译差异）
+>
+> 分工直觉：**绑定挂载管"我想放哪"，命名卷管"Docker 帮我保管"**
+
+### 5.2 挂载后"谁说了算"？空文件 / 不存在的路径会怎样
+
+**绑定挂载（-v 宿主机路径:容器路径）= 用海报盖住墙上的画：**
+
+| 宿主机文件状态 | 容器里看到什么       | 容器原内容丢了吗               |
+| -------------- | -------------------- | ------------------------------ |
+| 有内容         | 宿主机的版本         | 没丢，被盖住                   |
+| 空文件         | 空（nginx 白屏/403） | 没丢，被盖住                   |
+| ⚠️ 路径不存在   | Docker **不报错**，自动创建**空目录**挂上去 | 没丢，被盖住 |
+
+- 宿主机内容**盖住**容器路径；原内容还在镜像图层里躺着，取消挂载就回来
+- **经典陷阱**：宿主机路径拼错 → Docker 悄悄建空目录 → 容器内容"神秘消失"。挂载后内容变空，先查宿主机路径
+
+**命名卷（-v 卷名:容器路径，左边是名字不是路径）性格相反——"首次拷贝"：**
+
+- 卷是新建的空卷 → Docker **先把容器里该路径的现有内容拷进卷**，再挂载
+- 这就是 `-v n8n_data:/home/node/.n8n` 能保住 n8n 初始配置的原因
+
+### 5.3 volume 命令家族（和 rm / ls 家族一脉相承）
 
 ```bash
-# 后台运行 + 命名 + 端口映射 + 挂载目录
-docker run -d --name <容器名> -p 宿主机端口:容器端口 -v 宿主机路径:容器路径 <镜像名>
+docker volume create <卷名>    # 创建命名卷
+docker volume ls               # 列出所有卷
+docker volume inspect <卷名>   # 看详情：真实存放路径、被谁挂载
+docker volume rm <卷名>        # 删除指定卷
+docker volume prune            # 清理"没人用"的卷（悬空卷）
+docker volume prune -a         # 狠招：删除所有没有任何容器使用的卷（连命名卷也清，数据无价，想清楚再按）
 ```
 
-| 参数       | 作用                                     | 例子                               |
-| ---------- | ---------------------------------------- | ---------------------------------- |
-| `-d`     | 后台运行（detach），不占用终端           |                                    |
-| `--name` | 给容器起名字                             | `--name myapp`                   |
-| `-p`     | **端口映射**：把容器端口暴露给外面 | `-p 8080:80`（外部8080→容器80） |
-| `-v`     | **挂载目录**：把本机文件夹塞进容器 | `-v /host/data:/container/data`  |
+- `inspect` 是通用"体检报告"命令：`docker inspect <容器/镜像>` 都能用，查配置第一反应
+- Docker CLI 是 Unix 命令风格的变体：`rm`（容器）/ `rmi`（镜像，i=image）/ `ls` / `prune` 全家规律一致
 
-> **⚠️ 挂载目录 -v 的正确写法**：必须是 `宿主机路径:容器路径` 两边都要写，中间用**冒号**分隔。
-> ❌ `-v /host/data`（只写一边，不对）
-> ✅ `-v /home/user/data:/app/data`（宿主机路径:容器路径）
+### 5.4 -v 实战：换掉 nginx 默认首页
 
----
+`-v` 是 Docker Engine 的功能，Windows/Mac/裸 Linux 行为一致；方向规则不变：**左宿主机 B，右容器 A**
 
-## Dockerfile
+```bash
+# 单文件版：用宿主机的 B.html 盖住容器里的默认首页
+docker run -d --name my-web -p 8080:80 \
+  -v /root/B.html:/usr/share/nginx/html/index.html \
+  nginx
 
-<!-- Dockerfile 是"做镜像的菜谱"——用指令描述怎么一步步把镜像构建出来 -->
-
-```dockerfile
-# 基础镜像（用现成的 Python 3.10 环境）
-FROM python:3.10
-
-# 工作目录（容器里的默认路径）
-WORKDIR /app
-
-# 复制依赖文件到容器
-COPY requirements.txt .
-
-# 安装依赖
-RUN pip install -r requirements.txt
-
-# 复制代码到容器
-COPY . .
-
-# 启动命令（容器启动时执行）
-CMD ["python", "app.py"]
+# 更推荐：整个目录挂载（改宿主机文件 = 网页立刻变，不用重启容器）
+docker run -d --name my-web -p 8080:80 \
+  -v /root/mysite:/usr/share/nginx/html \
+  nginx
 ```
 
-**常用指令：** `FROM`（基础镜像）、`COPY`（复制文件）、`RUN`（构建时执行命令）、`CMD`（启动时执行）、`WORKDIR`（工作目录）
-
-> 待补充：今天学的 Dockerfile 指令细节。
-
----
-
-## 实战项目
-
-- [ ] 待补充：用 Docker 跑起来的第一个项目
+- 右边必须写**容器内部的真实路径**（nginx 默认首页在 `/usr/share/nginx/html/`）
+- 查容器内路径三招：翻镜像官方文档 / `docker exec -it` 进容器 `ls` / `docker inspect`
+- **挂载后两边是同一个文件**：宿主机改文件 → 容器里立刻生效 → 开发时挂代码目录比 COPY 进镜像方便
 
 ---
 
-## 踩坑记录
+## 第 6 章 容器网络
+
+### 6.1 -p 8080:80 的冒号（为什么必须写两个端口）
+
+**根源：容器网络是隔离的 → 宿主机和容器各有一套门牌号（端口）**，冒号就是"转接规则"：
+
+```bash
+-p 8080:80   # 读作：寄到宿主机 8080 的包裹，转交给容器里的 80
+```
+
+| 部分    | 是谁的端口 | 谁说了算                        | 类比（酒店电话） |
+| ------- | ---------- | ------------------------------- | ---------------- |
+| 左 8080 | 宿主机     | 我随便挑（没被占用就行）        | 前台总机号码     |
+| 右 80   | 容器       | nginx 定死的（它出生就监听 80） | 房间分机号       |
+
+- 冒号 = "从 A 转到 B"的箭头，两边缺一不可
+- 只写一个数字（如 `-p 8080`）：Docker 把它当成**容器端口**，宿主机端口随机分配——而容器里 8080 没人监听，转过去没人接电话 ❌
+- 验证：`-p 8888:80` 一样能访问 → 前台号码随便换，分机 80 是 nginx 定死的
+
+### 6.2 宿主机端口能随便写吗？（能，但有三个规矩）
+
+**规矩 1 —— 范围 0~65535：** 一台机器共 65536 个门牌号
+
+**规矩 2 —— 避开 0~1023（特权端口）：** 被历史著名的"老前辈"占了名分：80（HTTP）、443（HTTPS）、22（SSH）、3306（MySQL）……系统和老软件默认来抢，新手选 **1024 以上**（8080 / 8888 / 1234 都很安全）
+
+**规矩 3 —— 别撞车：** 一个门牌同时只能住一户；端口被占会报 `port is already allocated`，换一个就行
+
+> 80/443 理论上也能绑（Docker Engine 在 Linux 里有 root 权限），但没必要，平民端口够用
+
+**⚠️ 左右两边的自由度完全不同：**
+
+|              | 左边（宿主机端口）               | 右边（容器端口）             |
+| ------------ | -------------------------------- | ---------------------------- |
+| 能随便写吗   | ✅ 基本随便（1024+ 没被占即可）  | ❌ 必须是服务实际监听的端口  |
+| 原因         | 前台总机号码随我定               | nginx 出生就守在 80，写别的没人接 |
+
+**实战：** `-p 1234:80 nginx` → 浏览器访问 `http://localhost:1234` ✅
+
+### 6.3 为什么 localhost 访问不用"开安全组"？
+
+三种"谁能访问我"的关卡（由近到远）：
+
+| 谁访问谁                     | 走哪条路           | 要过什么关卡                                            |
+| ---------------------------- | ------------------ | ------------------------------------------------------- |
+| 自己访问自己（localhost）    | 回环接口，不出网卡 | **不过任何关卡，直接通** ✅                             |
+| 局域网设备（手机访问我电脑） | 从"家门"进来       | 本机防火墙（Windows Defender / Linux 的 ufw）           |
+| 外网访问云服务器             | 进"机房大楼"       | **云安全组**（大楼保安）+ 机器自身防火墙（家里门锁）    |
+
+- `localhost` / `127.0.0.1` = 回环地址：数据包在电脑内部转一圈就回来，根本不出网卡 → 防火墙和安全组都管不着，本地练 Docker 不用配任何入站规则
+- 安全组在机器**外面**（云厂商设的），本机防火墙在机器**里面**，两道关都可能拦人；想让手机访问电脑服务时，才需要放行本机防火墙入站规则
+- 我的环境：Docker Desktop（WSL2）自动把容器端口搭桥到 Windows 的 localhost，所以 `http://localhost:8080` 开箱即通
+
+### 6.4 容器之间怎么通信？🔲（网课已学，待回忆填充）
+
+**已确认的事实（实战得来）：**
+
+- 容器网络和宿主机隔离 → 所以外界访问容器内服务必须 `-p` 端口映射
+- 同一个 docker compose 项目里，容器之间可以**直接用服务名当域名互访**（如 API 容器连数据库写 `db:5432`）——compose 自动建了网络 + 自动配了"按名字拨号的内线"
+
+**三种网络模式（网课回忆整理 2026-08-29）：**
+
+| 模式             | 特点                                                            | 类比                     |
+| ---------------- | --------------------------------------------------------------- | ------------------------ |
+| `bridge`（默认） | Docker 建虚拟网桥，每个容器一块虚拟网卡、分到独立内网 IP，出网靠 NAT | 大楼公共走廊，每间房有门牌 |
+| `host`           | 容器**直接共用宿主机的网络栈**：没有独立 IP，监听的端口就是宿主机端口（不需要也不能用 `-p`） | 直接住进大楼前台 |
+| `none`           | 不配任何网络，完全断网                                          | 关小黑屋                 |
+
+**docker network 命令家族（和 volume 家族一个套路）：**
+
+```bash
+docker network ls                        # 列出所有网络
+docker network create <网络名>           # 创建自定义 bridge 网络（可指定子网）
+docker network inspect <网络名>          # 体检：看谁在里面、子网是多少
+docker network rm <网络名>               # 删除网络
+docker network connect <网络名> <容器>   # 把运行中的容器"拉进群聊"
+docker network disconnect <网络名> <容器> # 退群
+```
+
+**自定义 bridge vs 默认 bridge（为什么服务名互访需要自定义网络）：**
+
+|                | 默认 bridge（docker0）       | 自定义 bridge                |
+| -------------- | ---------------------------- | ---------------------------- |
+| 容器互访       | 只能靠 IP 地址               | **容器名就是域名**，直接拨   |
+| DNS 自动解析   | ❌ 没有                       | ✅ 自动配好                   |
+| 隔离性         | 所有容器挤一个大群           | 一个项目一个群，互不干扰     |
+
+- compose 的"内线电话"（服务名互访）就是靠自动创建的自定义 bridge 网络实现的
+- `--link` 是老古董：compose 普及之前容器互联的老办法，官方已不推荐，知道有这个东西就行
+
+---
+
+## 第 7 章 Docker Compose（舰队模式）
+
+### 7.1 为什么需要 compose：Dify 的教训
+
+- Dify 这类应用不是**一个**镜像，而是几十个容器组成的舰队（API + Worker + 数据库 + Redis + nginx……）
+- 一个个 `docker run` 敲到手软还容易错 → **compose 用一个 yaml 文件把整支舰队写成"花名册"，一条命令全员拉起**
+- 踩过的坑：`docker run dify` 报错——dify 根本不是镜像名，它是"一个文件夹 + 一个 docker-compose.yaml"组成的应用
+
+### 7.2 核心命令（在 docker-compose.yaml 所在目录执行）
+
+```bash
+docker compose up -d      # 照着 yaml 拉起整支舰队（-d 后台）
+docker compose ps         # 只看这支舰队的成员（比 docker ps 干净）
+docker compose logs       # 舰队日志（可加 -f 跟踪）
+docker compose down       # 收摊：停止并删除舰队容器（数据卷默认保留）
+```
+
+**Dify 部署标准套路：**
+
+```bash
+cd D:\dify-main\docker     # 进到 yaml 所在目录
+cp .env.example .env       # 首次部署先复制配置
+docker compose up -d       # 拉起
+docker compose ps          # 全部 Up 才算成功
+```
+
+- 改端口：编辑 `.env` 的 `EXPOSE_NGINX_PORT=1234` → 再跑一次 `up -d`
+- **数据备份**：Dify 的 yaml 自带挂载，数据都在 `dify/docker/volumes`（"冰箱"出厂自带）→ 重装前备份这个文件夹就能保住数据
+
+### 7.3 compose 的三个特性
+
+**1. 点名册（自动命名）：**
+
+- yaml 里每个服务（service）一行：用什么镜像、什么端口、挂什么卷全写在册
+- 容器自动命名：`项目名-服务名-序号`（如 `docker-nginx-1`），不用 `--name`，一眼看出谁是谁
+
+**2. 内线电话（服务名互访）：**
+
+- 同一 compose 网络里，容器之间直接用**服务名**当域名互访（`db:5432`）
+- compose 自动建网络 + 自动配 DNS，等于每个房间装了"按名字拨号的内线"
+
+**3. 增量重建（聪明地更新）：**
+
+- 改了配置再跑 `up -d`，compose 只重建受影响的容器，其他不动
+- 不用推倒重来
+
+### 7.4 单兵 vs 舰队：怎么判断新应用怎么部署
+
+| 应用      | 部署方式              | 为什么                                         |
+| --------- | --------------------- | ---------------------------------------------- |
+| n8n       | 🎉 单容器（docker run） | 自带 SQLite 数据库，一个人就是一支队伍          |
+| Dify      | 舰队（docker compose）  | API + Worker + 数据库 + Redis + nginx……         |
+| RAGFlow   | 舰队（docker compose）  | 检索引擎 + MySQL + MinIO + Redis……              |
+
+**两个快速判断信号：**
+
+1. 翻应用的仓库/文件夹：有 `docker-compose.yaml` → 舰队；文档只给一条 `docker run` → 单兵
+2. 文档提到数据库、Redis、消息队列……八成是舰队
+
+> 原理一句话：**应用依赖的"服务"越多，越需要 compose 把它们编成队。** 单体应用自带一切 → 单容器；分布式应用各零件各跑各的容器 → compose 统一指挥。
+
+**yaml 怎么写？拿 MongoDB 做对比：一条 run 命令 vs 一份 yaml 花名册**
+
+以前单兵作战（一长串参数，敲错一个字全重来）：
+
+```bash
+docker run -d --name mongo \
+  -e MONGO_INITDB_ROOT_USERNAME=admin \
+  -e MONGO_INITDB_ROOT_PASSWORD=secret \
+  -p 27017:27017 \
+  -v mongo_data:/data/db \
+  mongo
+```
+
+写成 compose 花名册（`docker-compose.yaml`，参数一目了然、可进版本管理）：
+
+```yaml
+services:                     # 花名册开头：下面每个条目是一个服务
+  mongo:                      # 服务名（也是它在网络里的"域名"）
+    image: mongo              # 用哪个镜像（= run 最后面的镜像名）
+    container_name: mongo     # 可选手动起名（不写就自动 项目名-服务名-序号）
+    environment:              # = -e 传环境变量
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: secret
+    ports:                    # = -p 端口映射（注意有引号和短横线）
+      - "27017:27017"
+    volumes:                  # = -v 挂载
+      - mongo_data:/data/db
+    restart: always           # = --restart always
+
+volumes:                      # 顶层 volumes 段：声明命名卷（compose 统一管理）
+  mongo_data:
+```
+
+**run 参数 → yaml 字段对照表：**
+
+| docker run 参数     | yaml 写法                 |
+| ------------------- | ------------------------- |
+| `<镜像名>`          | `image:`                  |
+| `-e KEY=VAL`        | `environment:`            |
+| `-p 宿:容`          | `ports:`                  |
+| `-v 卷:路径`        | `volumes:`（卷在顶层声明）|
+| `--restart always`  | `restart: always`         |
+| `--name`            | `container_name:`         |
+| （本地构建）        | `build: .`（用 Dockerfile 现场做，和 `image:` 二选一：image 直接拉现成的，build 本地构建） |
+
+**compose 的网络与启动顺序：**
+
+- 每个 compose 项目自动创建一个专属 bridge 网络（名字类似 `项目名_default`）——所以同项目服务名互访开箱即用
+- `depends_on:` 声明启动顺序依赖：数据库没起来，应用先起也白起 → 写明"先等它"
+
+```yaml
+services:
+  web:                # 应用服务（依赖数据库）
+    depends_on:
+      - mongo         # 意思：先拉起 mongo，再拉起 web
+```
+
+**up / stop / start / down 家族（谁动谁不动）：**
+
+| 命令                 | 容器            | 网络 | 数据卷 |
+| -------------------- | --------------- | ---- | ------ |
+| `docker compose up -d`   | 创建并启动  | 创建 | 保留   |
+| `docker compose stop`    | 只停止      | 保留 | 保留   |
+| `docker compose start`   | 启动已停的  | 保留 | 保留   |
+| `docker compose down`    | 停止**并删除** | 删除 | 保留 |
+
+**-f 指定文件名（yaml 不叫"标准名"时的指路牌）：**
+
+```bash
+# compose 默认只认 docker-compose.yaml / compose.yaml
+# 文件名是别的（如 mongo-compose.yaml）就要 -f 指路，不然找不到直接报错
+docker compose -f mongo-compose.yaml up -d
+```
+
+> ✅ 2026-08-29 网课看完，已整理填充。
+
+---
+
+## 第 8 章 实战项目
+
+- [x] 项目一：用 Docker 跑起 nginx（2026-08-29）✅
+- [ ] 项目二：海报盖画——挂载换掉 nginx 默认首页
+- [ ] 项目三：第一个自制镜像 hello-docker
+
+### 项目一：跑起 nginx 网页服务器 ✅
+
+**核心命令（背这个模板就行）：**
+
+```bash
+docker run -d --name my-nginx -p 8080:80 nginx
+```
+
+**逐段拆解（从左到右读）：**
+
+```bash
+docker run         # 创建并启动一个容器
+  -d               # 后台运行（detach）：不占终端，只回一行容器 ID
+  --name my-nginx  # 给容器起名字（不起名会随机生成 happy_yonath 这种，又长又难记）
+  -p 8080:80       # 端口映射：宿主机 8080 → 容器 80（口诀：左边是"我"，右边是"容器"）
+  nginx            # 用哪个镜像跑（不写 tag 默认 latest）
+```
+
+**验证它活着：**
+
+```bash
+docker ps   # 应该看到 my-nginx，状态 Up
+# 浏览器访问 http://localhost:8080 → 看到 nginx 欢迎页
+```
+
+**用完收尾（完整生命周期）：**
+
+```bash
+docker stop my-nginx   # 停止（填容器名，不是镜像名！参见踩坑记录）
+docker rm my-nginx     # 删除
+```
+
+**一句话记忆：** `-d` 后台、`--name` 起名、`-p 左:右` 端口、最后是镜像。
+
+### 项目二：海报盖画——挂载换掉 nginx 首页 🔲
+
+**步骤：**
+
+```powershell
+# 1. 建文件夹写页面（PowerShell 写法；type nul 是 CMD 方言，别用）
+mkdir D:\mysite
+"<h1>我的 B 页面：海报盖画成功！</h1>" > D:\mysite\index.html
+
+# 2. 挂载运行（左边是我电脑的路径，右边是容器内 nginx 首页路径）
+docker run -d --name my-web -p 8081:80 -v D:\mysite:/usr/share/nginx/html nginx
+```
+
+3. 浏览器开 `http://localhost:8081` → 应该看到 B 页面（不是 nginx 欢迎页）
+4. 改 `index.html` 文字 → 保存 → 刷新浏览器就变（验证"两边是同一个文件"）
+5. `stop` + `rm` 后裸跑一个 nginx → 欢迎页原样还在（验证"画没被删，只是被盖住"）
+
+### 项目三：第一个自制镜像 hello-docker 🔲
+
+**步骤：**
+
+1. 建文件夹 `docker-hello`，写两个文件：`app.py`（打印问候+当前时间）+ `Dockerfile`
+2. Dockerfile 四件套：`FROM python:3.10` → `WORKDIR /app` → `COPY . .` → `CMD ["python", "app.py"]`
+3. 构建运行：
+
+```bash
+docker build -t hello-docker .   # 构建：-t 起名，. 用当前目录的 Dockerfile
+docker run hello-docker          # 运行：看到问候语和时间就成功
+docker ps -a                     # 容器打印完就 Exited (0)，记得 rm 收尾
+```
+
+**观察题：** 宿主机根本没装 Python 3.10，容器里的 Python 哪来的？（答：`FROM` 的地基镜像自带）
+
+---
+
+## 第 9 章 踩坑记录
 
 | 日期       | 错误                                                         | 原因                                                         | 解决                                                         |
 | ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 2026-08-29 | `docker stop nginx` → `No such container: nginx`              | 把**镜像名**当成了**容器名**。stop/rm 后面要填容器名（NAMES 列），不是镜像名（IMAGE 列）。两个 nginx 容器是随机名：`happy_yonath`、`dazzling_carson` | 用容器名操作：`docker rm happy_yonath dazzling_carson`；以后 `docker run --name xxx` 自己起名 |
-| 2026-08-29 | `Exited (0)` 的容器却去 `docker stop`                         | 没看 STATUS 列：`Exited (0)` = 已经自己退出了（0 = 正常），根本不用停 | 已退出的容器用 `docker rm` 删除；`stop` 只对 `Up`（运行中）的有意义 |
+| 2026-08-29 | `docker stop nginx` → `No such container: nginx`              | 把**镜像名**当成了**容器名**。stop/rm 后面要填容器名（NAMES 列），不是镜像名（IMAGE 列） | 用容器名操作；以后 `docker run --name xxx` 自己起名          |
+| 2026-08-29 | `Exited (0)` 的容器却去 `docker stop`                         | 没看 STATUS 列：`Exited (0)` = 已经自己退出了（0 = 正常）    | 已退出的容器用 `docker rm` 删除；`stop` 只对 `Up` 的有意义    |
+| 2026-08-29 | `docker run dify -d name my-dify -p 1234:80` → `这镜像不在白名单` | ① **dify 不是镜像名**——要用 compose 拉起；② 选项写在镜像名后面（顺序错）；③ `name` 少一个横杠 | 在 `dify/docker` 目录：`cp .env.example .env` → `docker compose up -d`；选项全写镜像名左边 |
+| 2026-08-29 | 拉镜像报 `这镜像不在白名单 (not in the allowlist)`            | DaoCloud 镜像源开了白名单模式，只代下载名单内的镜像          | 换一个镜像源（南大/网易等），或接受回源 docker.io            |
+| 2026-08-29 | PowerShell 里 `type nul > index.html` 报错；`touch` 也报错    | `type nul` 是 **CMD** 黑话（nul 是 CMD 的黑洞设备）；PowerShell 里 `type` = `Get-Content`，没有 nul 设备；`touch` 是 **Linux** 的 | PowerShell 创建文件：`"内容" > 文件名` 或 `notepad 文件名`；进 WSL 才能用 touch/vim |
 
-> 待补充：以后踩了坑，记在这里（同时可以同步到 `notes/errors.md`）。
+> 以后踩了坑，记在这里（同时可以同步到 `notes/errors.md`）。
+
+---
+
+## 第 10 章 待办与待补充
+
+**🔲 回忆填充清单（2026-08-29 网课结课）：**
+
+- [x] 3.3 Dockerfile 指令全表 + ENTRYPOINT vs CMD + .dockerignore + 分层缓存 + push 流程 ✅
+- [x] 4.3 run 参数：-e / --name / -it / --rm / --restart always vs unless-stopped ✅
+- [x] 5.3 volume 家族补充：prune -a ✅
+- [ ] 4.6 调试命令：docker top / stats / diff（没回忆出来，下次网课回看或实操补）
+- [x] 6.4 容器网络：bridge / host / none + network 命令家族 + 自定义 vs 默认 bridge ✅
+- [x] 7.4 compose yaml 细节：services 结构 / depends_on / build vs image / -f 指定文件 ✅
+
+**待办：**
+
+- [ ] 项目二：海报盖画练习
+- [ ] 项目三：hello-docker 自制镜像
+- [ ] 踩坑记录同步到 `notes/errors.md`
+
+**下一步方向：** 学完 Docker 后，为毕设的 Python 数据分析项目写 Dockerfile（打包 pandas 环境），把 Docker 和数据分析串起来。
